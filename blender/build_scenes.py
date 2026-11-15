@@ -683,16 +683,16 @@ def shot_fields(f0, f1):
 
 def shot_contact(f0, f1, macro=False):
     """09/10 — two electron clouds refuse to overlap: you never touch anything."""
-    R = 0.85
+    R = 1.15
     a_mat = fresnel_mat("cloudA", CYAN, strength=9.0, power=2.9)
     b_mat = fresnel_mat("cloudB", (1.0, 0.52, 0.30), strength=9.0, power=2.9)
     A = sphere("cloudA", R, (-1.95, 0, 0), a_mat, subdiv=4)
     B = sphere("cloudB", R, (1.95, 0, 0), b_mat, subdiv=4)
     for ob, sign in ((A, 1.0), (B, -1.0)):
         for fr, x, sq in ((f0, 1.95, 1.00),
-                          (int(f0 + (f1 - f0) * 0.55), 1.44, 0.94),
-                          (int(f0 + (f1 - f0) * 0.78), 1.34, 0.86),
-                          (f1, 1.44, 0.93)):
+                          (int(f0 + (f1 - f0) * 0.55), 1.38, 0.94),
+                          (int(f0 + (f1 - f0) * 0.78), 1.26, 0.86),
+                          (f1, 1.36, 0.93)):
             ob.location = (sign * x, 0, 0)
             ob.scale = (R * sq, R / sq, R / sq)
             ob.keyframe_insert("location", frame=fr)
@@ -709,29 +709,33 @@ def shot_contact(f0, f1, macro=False):
         for ob, mat, side in ((A, e_mat, -1), (B, e2_mat, 1)):
             loc = (side * R * abs(math.sin(ph) * math.cos(th)),
                    R * math.sin(ph) * math.sin(th), R * math.cos(ph))
-            e = sphere(f"p{i}{side}", 0.026, loc, mat, subdiv=2)
+            e = sphere(f"p{i}{side}", 0.022, loc, mat, subdiv=2)
             e.parent = ob
             e.matrix_parent_inverse = ob.matrix_world.inverted()
             e.location = loc
             jitter(e, f0, f1, amp=0.06, phase=i + side, nkeys=4)
     gap = point_light((0, 0, 0), 45, (1.0, 0.86, 0.66), radius=0.12)
     light_flicker(gap, f0, f1, 45, 0.4, 0.2, nkeys=8)
+    flare = sphere("flare", 0.075, (0, 0, 0),
+                   make_mat("flarem", base=(1.0, 0.9, 0.72), rough=0.2,
+                            emit=(1.0, 0.88, 0.7), emit_strength=12.0), subdiv=3)
+    pulse(flare, f0, f1, amp=0.22, nkeys=7, phase=1.1)
     key = area_light((0, -3.2, 2.2), (0, 0, 0), 2.8, 300, (0.66, 0.88, 1.0))
     light_flicker(key, f0, f1, 300, 0.06, 0.8)
     rim = area_light((0, 2.8, -1.9), (0, 0, 0), 2.8, 260, (1.0, 0.52, 0.28))
     light_flicker(rim, f0, f1, 260, 0.09, 1.6)
     dust(f0, f1, n=14, spread=2.4, r=0.013)
     if macro:
-        cam = add_camera((0.20, -4.6, 0.85), (0, 0, 0), lens=45, fstop=1.6, focus=4.7)
-        cam_keys(cam, [(f0, (0.20, -4.6, 0.85), (0, 0, 0)),
-                       (f1, (-0.70, -4.9, -0.35), (0, 0, 0))])
-        focus_keys(cam, [(f0, 4.7), (f1, 5.0)])
+        cam = add_camera((0.20, -4.0, 0.70), (0, 0, 0), lens=45, fstop=1.6, focus=4.1)
+        cam_keys(cam, [(f0, (0.20, -4.0, 0.70), (0, 0, 0)),
+                       (f1, (-0.60, -4.3, -0.30), (0, 0, 0))])
+        focus_keys(cam, [(f0, 4.1), (f1, 4.4)])
         fg_bokeh(cam, f0, f1, dist=0.45, r=0.07)
     else:
-        cam = add_camera((0.6, -12.0, 2.6), (0, 0, 0), lens=50, fstop=2.2, focus=12.3)
-        cam_keys(cam, [(f0, (0.6, -12.0, 2.6), (0, 0, 0)),
-                       (f1, (-0.4, -10.2, 1.9), (0, 0, 0))])
-        focus_keys(cam, [(f0, 12.3), (f1, 10.5)])
+        cam = add_camera((0.6, -15.5, 3.2), (0, 0, 0), lens=50, fstop=2.2, focus=15.8)
+        cam_keys(cam, [(f0, (0.6, -15.5, 3.2), (0, 0, 0)),
+                       (f1, (-0.4, -13.2, 2.4), (0, 0, 0))])
+        focus_keys(cam, [(f0, 15.8), (f1, 13.5)])
         fg_bokeh(cam, f0, f1, dist=0.95, r=0.14)
     return cam
 
