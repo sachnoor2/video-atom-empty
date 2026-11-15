@@ -68,21 +68,22 @@ def make_mat(name, base=(0.5, 0.5, 0.5), rough=0.32, metal=0.0, emit=None,
     return m
 
 
-def fresnel_mat(name, color, strength=8.0, alpha=0.06, power=2.6, transmission=0.92):
-    """A glassy shell that only lights up at its silhouette: an atom's edge."""
+def fresnel_mat(name, color, strength=8.0, power=2.6, alpha=0.0):
+    """Transparent in the middle, glowing at the silhouette: an atom's edge, and
+    nothing else. A tinted glass ball would hide the emptiness the video is about."""
     m = bpy.data.materials.get(name)
     if m:
         return m
     m = bpy.data.materials.new(name)
     m.use_nodes = True
     nt = m.node_tree
-    b = nt.nodes.get("Principled BSDF")
-    set_in(b, ["Base Color"], (*[c * 0.25 for c in color], 1.0))
-    set_in(b, ["Roughness"], 0.10)
-    set_in(b, ["IOR"], 1.05)
-    set_in(b, ["Alpha"], alpha)
-    set_in(b, ["Transmission Weight", "Transmission"], transmission)
-    set_in(b, ["Emission Color", "Emission"], (*color, 1.0))
+    nt.nodes.clear()
+    out = nt.nodes.new("ShaderNodeOutputMaterial")
+    mix = nt.nodes.new("ShaderNodeMixShader")
+    trans = nt.nodes.new("ShaderNodeBsdfTransparent")
+    emis = nt.nodes.new("ShaderNodeEmission")
+    emis.inputs["Color"].default_value = (*color, 1.0)
+    emis.inputs["Strength"].default_value = strength
     lw = nt.nodes.new("ShaderNodeLayerWeight")
     lw.inputs["Blend"].default_value = 0.5
     inv = nt.nodes.new("ShaderNodeMath")
@@ -91,13 +92,12 @@ def fresnel_mat(name, color, strength=8.0, alpha=0.06, power=2.6, transmission=0
     pw = nt.nodes.new("ShaderNodeMath")
     pw.operation = "POWER"
     pw.inputs[1].default_value = power
-    mul = nt.nodes.new("ShaderNodeMath")
-    mul.operation = "MULTIPLY"
-    mul.inputs[1].default_value = strength
     nt.links.new(lw.outputs["Facing"], inv.inputs[1])
     nt.links.new(inv.outputs[0], pw.inputs[0])
-    nt.links.new(pw.outputs[0], mul.inputs[0])
-    nt.links.new(mul.outputs[0], b.inputs["Emission Strength"])
+    nt.links.new(pw.outputs[0], mix.inputs["Fac"])
+    nt.links.new(trans.outputs[0], mix.inputs[1])
+    nt.links.new(emis.outputs[0], mix.inputs[2])
+    nt.links.new(mix.outputs[0], out.inputs["Surface"])
     try:
         m.surface_render_method = "BLENDED"
     except Exception:
@@ -421,10 +421,10 @@ def reset(samples=48, f0=0, f1=90):
 # ---------------------------------------------------------------- elements
 def nucleon_cluster(f0, f1, radius=0.85, count=14, nuc_r=0.28, glow=0.55):
     """A nucleus: protons deep cyan, neutrons deep magenta, all jiggling."""
-    mp = make_mat("proton", base=DEEP_CYAN, rough=0.18, coat=0.9,
-                  emit=CYAN, emit_strength=glow)
-    mn = make_mat("neutron", base=DEEP_MAGENTA, rough=0.2, coat=0.9,
-                  emit=MAGENTA, emit_strength=glow * 0.8)
+    mp = make_mat("proton", base=(0.012, 0.105, 0.165), rough=0.14, coat=1.0,
+                  emit=CYAN, emit_strength=glow * 0.16)
+    mn = make_mat("neutron", base=(0.150, 0.020, 0.195), rough=0.16, coat=1.0,
+                  emit=MAGENTA, emit_strength=glow * 0.13)
     grp = bpy.data.objects.new("cluster", None)
     bpy.context.scene.collection.objects.link(grp)
     for i in range(count):
@@ -442,9 +442,9 @@ def nucleon_cluster(f0, f1, radius=0.85, count=14, nuc_r=0.28, glow=0.55):
     return grp
 
 
-def electron_cloud(f0, f1, radius=2.4, count=110, size=0.02, glow=5.0, shells=(0.84, 1.0)):
+def electron_cloud(f0, f1, radius=2.4, count=110, size=0.02, glow=3.2, shells=(0.84, 1.0)):
     mat = make_mat("electron", base=(0.35, 0.9, 1.0), rough=0.2,
-                   emit=(0.62, 0.95, 1.0), emit_strength=glow)
+                   emit=(0.55, 0.92, 1.0), emit_strength=glow)
     grp = bpy.data.objects.new("cloud", None)
     bpy.context.scene.collection.objects.link(grp)
     for i in range(count):
@@ -455,7 +455,7 @@ def electron_cloud(f0, f1, radius=2.4, count=110, size=0.02, glow=5.0, shells=(0
         r = radius * (shells[0] + (shells[1] - shells[0]) * ((i * 0.37) % 1.0))
         loc = (r * math.sin(ph) * math.cos(th), r * math.sin(ph) * math.sin(th),
                r * math.cos(ph) * 0.9)
-        ob = sphere(f"e{i}", size * (0.75 + 0.5 * ((i * 0.11) % 1.0)), loc, mat, subdiv=1)
+        ob = sphere(f"e{i}", size * (0.75 + 0.5 * ((i * 0.11) % 1.0)), loc, mat, subdiv=2)
         ob.parent = grp
         ob.matrix_parent_inverse = grp.matrix_world.inverted()
         ob.location = loc
@@ -464,17 +464,17 @@ def electron_cloud(f0, f1, radius=2.4, count=110, size=0.02, glow=5.0, shells=(0
     return grp
 
 
-def atom_shell(radius, color=CYAN, name="shell", strength=7.0, alpha=0.05):
+def atom_shell(radius, color=CYAN, name="shell", strength=7.0, power=2.6):
     return sphere(name, radius, (0, 0, 0),
-                  fresnel_mat(name + "m", color, strength=strength, alpha=alpha), subdiv=4)
+                  fresnel_mat(name + "m", color, strength=strength, power=power), subdiv=4)
 
 
 # ---------------------------------------------------------------- shots
 def lattice(f0, f1, n=7, depth=3, radius=0.54, step=1.03, xray=False):
     if xray:
-        m_atom = fresnel_mat("atomglass", CYAN, strength=6.0, alpha=0.05)
+        m_atom = fresnel_mat("atomglass", CYAN, strength=5.0, power=2.2)
         m_core = make_mat("core", base=BONE, rough=0.2, emit=(1.0, 0.86, 0.62),
-                          emit_strength=9.0)
+                          emit_strength=4.0)
     else:
         m_atom = make_mat("atomskin", base=(0.045, 0.115, 0.150), rough=0.28, metal=0.25,
                           coat=0.8, emit=(0.05, 0.30, 0.40), emit_strength=0.20)
@@ -507,8 +507,8 @@ def shot_table(f0, f1):
     dust(f0, f1, n=18, spread=3.2, r=0.012, z0=-1.4, z1=1.6)
     cam = add_camera((0.0, -7.6, 0.5), (0, 0, 0), lens=62, fstop=2.2, focus=7.7)
     cam_keys(cam, [(f0, (0.0, -7.6, 0.5), (0, 0, 0)),
-                   (f1, (0.30, -4.3, 0.12), (0, 0.4, 0))])
-    focus_keys(cam, [(f0, 7.7), (f1, 4.6)])
+                   (f1, (0.28, -5.4, 0.14), (0, 0.4, 0))])
+    focus_keys(cam, [(f0, 7.7), (f1, 5.6)])
     fg_bokeh(cam, f0, f1, dist=0.9, r=0.12)
     return cam
 
@@ -531,17 +531,17 @@ def shot_empty(f0, f1):
 
 def shot_nucleus(f0, f1):
     """03 — the nucleus itself: the whole atom's mass in one speck."""
-    nucleon_cluster(f0, f1, radius=0.62, count=15, nuc_r=0.215, glow=0.5)
-    atom_shell(1.15, color=CYAN, name="halo", strength=5.0, alpha=0.04)
+    nucleon_cluster(f0, f1, radius=0.60, count=15, nuc_r=0.195, glow=1.1)
+    atom_shell(1.30, color=CYAN, name="halo", strength=3.5, power=2.0)
     key = area_light((1.9, -2.3, 1.9), (0, 0, 0), 1.8, 210, (0.66, 0.9, 1.0))
     rim = area_light((-2.1, 1.3, -1.5), (0, 0, 0), 2.2, 260, (1.0, 0.5, 0.26))
     light_flicker(key, f0, f1, 210, 0.06, 0.5)
     light_flicker(rim, f0, f1, 260, 0.11, 2.0)
     dust(f0, f1, n=16, spread=1.8, r=0.011)
-    cam = add_camera((-1.55, -2.35, 0.5), (0, 0, 0), lens=58, fstop=1.8, focus=2.9)
-    cam_keys(cam, [(f0, (-1.55, -2.35, 0.5), (0, 0, 0)),
-                   (f1, (1.45, -2.05, -0.30), (0, 0, 0))])
-    focus_keys(cam, [(f0, 2.9), (f1, 2.6)])
+    cam = add_camera((-2.2, -3.3, 0.7), (0, 0, 0), lens=52, fstop=1.8, focus=4.0)
+    cam_keys(cam, [(f0, (-2.2, -3.3, 0.7), (0, 0, 0)),
+                   (f1, (2.0, -2.9, -0.35), (0, 0, 0))])
+    focus_keys(cam, [(f0, 4.0), (f1, 3.6)])
     fg_bokeh(cam, f0, f1, dist=0.7, r=0.10)
     return cam
 
@@ -549,8 +549,8 @@ def shot_nucleus(f0, f1):
 def shot_pullback(f0, f1):
     """04 — a hundred thousand times smaller: pull back to the whole atom."""
     nucleon_cluster(f0, f1, radius=0.11, count=12, nuc_r=0.038, glow=1.1)
-    atom_shell(2.45, color=CYAN, name="shell", strength=8.0, alpha=0.05)
-    electron_cloud(f0, f1, radius=2.4, count=110, size=0.018, glow=6.0)
+    atom_shell(2.45, color=CYAN, name="shell", strength=7.0, power=2.4)
+    electron_cloud(f0, f1, radius=2.4, count=110, size=0.018, glow=3.4)
     key = area_light((3.0, -3.2, 2.8), (0, 0, 0), 3.2, 340, (0.62, 0.88, 1.0))
     rim = area_light((-3.2, 1.9, -1.9), (0, 0, 0), 3.4, 300, (1.0, 0.52, 0.28))
     light_flicker(key, f0, f1, 340, 0.05, 0.2)
@@ -566,13 +566,13 @@ def shot_pullback(f0, f1):
 
 def shot_marble(f0, f1):
     """05 — marble to kilometre: the scale dive, on a real ground grid."""
-    marble = make_mat("marble", base=(0.92, 0.93, 0.95), rough=0.10, coat=1.0,
-                      emit=(0.85, 0.92, 1.0), emit_strength=2.2)
+    marble = make_mat("marble", base=(0.95, 0.95, 0.96), rough=0.06, coat=1.0,
+                      emit=(0.90, 0.94, 1.0), emit_strength=30.0)
     m = sphere("marble", 1.0, (0, 0, 1.0), marble, subdiv=4)
     spin(m, f0, f1, turns=1.2, axis="Z")
 
     sphere("dome", 600.0, (0, 0, 0),
-           fresnel_mat("domem", CYAN, strength=9.0, alpha=0.035, power=3.4), subdiv=4)
+           fresnel_mat("domem", CYAN, strength=7.0, power=3.2), subdiv=4)
 
     grid_mat = make_mat("grid", base=(0.02, 0.05, 0.07), rough=0.55)
     p = plane("ground", 4000, (0, 0, 0), grid_mat)
@@ -584,7 +584,7 @@ def shot_marble(f0, f1):
     bsdf = tex.nodes["Principled BSDF"]
     tex.links.new(chk.outputs["Color"], bsdf.inputs["Base Color"])
     tex.links.new(chk.outputs["Color"], bsdf.inputs["Emission Color"])
-    bsdf.inputs["Emission Strength"].default_value = 0.55
+    bsdf.inputs["Emission Strength"].default_value = 0.30
 
     ring = torus("rim", 600.0, 4.0, (0, 0, 3.0),
                  make_mat("ring", base=(1.0, 0.62, 0.25), rough=0.3,
@@ -596,16 +596,16 @@ def shot_marble(f0, f1):
     point_light((0, -4, 5), 260, (1.0, 0.82, 0.6), radius=1.6)
     dust(f0, f1, n=12, spread=70.0, r=1.4, z0=3.0, z1=60.0)
 
-    cam = add_camera((0.0, -4.0, 1.8), (0, 0, 1.0), lens=45, fstop=2.2, focus=4.1)
-    cam_keys(cam, [(f0, (0.0, -4.0, 1.8), (0, 0, 1.0)),
-                   (f1, (0.0, -620.0, 330.0), (0, 0, 55.0))])
-    focus_keys(cam, [(f0, 4.1), (f1, 640.0)])
+    cam = add_camera((0.0, -8.0, 2.6), (0, 0, 1.2), lens=40, fstop=2.2, focus=8.1)
+    cam_keys(cam, [(f0, (0.0, -8.0, 2.6), (0, 0, 1.2)),
+                   (f1, (0.0, -540.0, 290.0), (0, 0, 60.0))])
+    focus_keys(cam, [(f0, 8.1), (f1, 570.0)])
     return cam
 
 
 def shot_crosssection(f0, f1):
     """06 — cut the atom open: almost all of it is nothing."""
-    s = atom_shell(2.55, color=CYAN, name="cut", strength=7.0, alpha=0.045)
+    s = atom_shell(2.55, color=CYAN, name="cut", strength=7.0, power=2.4)
     bpy.ops.mesh.primitive_cube_add(size=6.0, location=(0, 3.1, 0))
     cutter = bpy.context.active_object
     cutter.name = "cutter"
@@ -622,7 +622,7 @@ def shot_crosssection(f0, f1):
     pulse(ring, f0, f1, amp=0.004, nkeys=4)
 
     nucleon_cluster(f0, f1, radius=0.095, count=12, nuc_r=0.032, glow=1.2)
-    electron_cloud(f0, f1, radius=2.5, count=70, size=0.016, glow=6.0, shells=(0.93, 1.0))
+    electron_cloud(f0, f1, radius=2.5, count=70, size=0.016, glow=3.2, shells=(0.93, 1.0))
     key = area_light((2.6, -2.0, 2.2), (0, 0, 0), 2.8, 300, (0.62, 0.88, 1.0))
     rim = area_light((-2.8, -0.8, -2.0), (0, 0, 0), 3.0, 260, (1.0, 0.5, 0.26))
     light_flicker(key, f0, f1, 300, 0.06, 0.9)
@@ -638,9 +638,9 @@ def shot_crosssection(f0, f1):
 
 def shot_core(f0, f1):
     """07 — almost all the mass sits in that tiny core."""
-    nucleon_cluster(f0, f1, radius=0.46, count=18, nuc_r=0.175, glow=0.75)
+    nucleon_cluster(f0, f1, radius=0.46, count=18, nuc_r=0.165, glow=1.0)
     dense = make_mat("dense", base=(1.0, 0.88, 0.66), rough=0.12,
-                     emit=(1.0, 0.72, 0.38), emit_strength=5.0)
+                     emit=(1.0, 0.72, 0.38), emit_strength=2.2)
     c = sphere("core", 0.22, (0, 0, 0), dense, subdiv=3)
     pulse(c, f0, f1, amp=0.12, nkeys=7, phase=0.4)
     key = area_light((1.5, -1.7, 1.4), (0, 0, 0), 1.5, 190, (0.66, 0.88, 1.0))
@@ -648,10 +648,10 @@ def shot_core(f0, f1):
     light_flicker(key, f0, f1, 190, 0.08, 0.6)
     light_flicker(rim, f0, f1, 230, 0.12, 2.4)
     dust(f0, f1, n=14, spread=1.4, r=0.009)
-    cam = add_camera((0.0, -3.5, 0.4), (0, 0, 0), lens=62, fstop=1.8, focus=3.6)
-    cam_keys(cam, [(f0, (0.0, -3.5, 0.4), (0, 0, 0)),
-                   (f1, (0.28, -2.25, 0.10), (0, 0, 0))])
-    focus_keys(cam, [(f0, 3.6), (f1, 2.3)])
+    cam = add_camera((0.0, -4.5, 0.5), (0, 0, 0), lens=58, fstop=1.8, focus=4.6)
+    cam_keys(cam, [(f0, (0.0, -4.5, 0.5), (0, 0, 0)),
+                   (f1, (0.30, -3.3, 0.14), (0, 0, 0))])
+    focus_keys(cam, [(f0, 4.6), (f1, 3.4)])
     fg_bokeh(cam, f0, f1, dist=0.6, r=0.09)
     return cam
 
@@ -660,10 +660,10 @@ def shot_fields(f0, f1):
     """08 — the rest is fields, not stuff."""
     nucleon_cluster(f0, f1, radius=0.30, count=10, nuc_r=0.115, glow=1.0)
     line_mat = make_mat("field", base=(0.35, 0.92, 1.0), rough=0.2,
-                        emit=(0.30, 0.92, 1.0), emit_strength=3.2)
+                        emit=(0.30, 0.92, 1.0), emit_strength=2.2)
     for i in range(7):
         a = i * 2 * math.pi / 7
-        ring = torus(f"ring{i}", 1.05 + 0.24 * i, 0.0085, (0, 0, 0), line_mat,
+        ring = torus(f"ring{i}", 1.05 + 0.24 * i, 0.0070, (0, 0, 0), line_mat,
                      rot=(math.radians(74), math.radians(11 * i), a))
         k0 = 0.8 + 0.02 * i
         for fr, k in ((f0, k0), (int((f0 + f1) / 2), k0 * 1.12), (f1, k0 * 0.95)):
@@ -672,16 +672,16 @@ def shot_fields(f0, f1):
         ring.scale = (k0, k0, k0)
         ease(ring)
         spin(ring, f0, f1, turns=0.1 * (1 if i % 2 else -1), axis="Z")
-    electron_cloud(f0, f1, radius=1.8, count=40, size=0.022, glow=6.0)
+    electron_cloud(f0, f1, radius=1.8, count=40, size=0.022, glow=3.0)
     key = point_light((0, 0, 0), 26, (0.6, 0.95, 1.0), radius=0.25)
     light_flicker(key, f0, f1, 26, 0.2, 0.3, nkeys=8)
     rim = area_light((-2.3, 1.6, 1.4), (0, 0, 0), 2.4, 230, (1.0, 0.52, 0.26))
     light_flicker(rim, f0, f1, 230, 0.08, 1.2)
     dust(f0, f1, n=16, spread=2.2, r=0.012)
-    cam = add_camera((-2.4, -3.4, 0.8), (0, 0, 0), lens=46, fstop=2.0, focus=4.2)
-    cam_keys(cam, [(f0, (-2.4, -3.4, 0.8), (0, 0, 0)),
-                   (f1, (1.7, -3.9, 0.15), (0, 0, 0))])
-    focus_keys(cam, [(f0, 4.2), (f1, 4.3)])
+    cam = add_camera((-2.8, -3.9, 0.9), (0, 0, 0), lens=44, fstop=2.0, focus=4.7)
+    cam_keys(cam, [(f0, (-2.8, -3.9, 0.9), (0, 0, 0)),
+                   (f1, (2.0, -4.4, 0.2), (0, 0, 0))])
+    focus_keys(cam, [(f0, 4.7), (f1, 4.9)])
     fg_bokeh(cam, f0, f1, dist=0.85, r=0.13)
     return cam
 
@@ -689,8 +689,8 @@ def shot_fields(f0, f1):
 def shot_contact(f0, f1, macro=False):
     """09/10 — two electron clouds refuse to overlap: you never touch anything."""
     R = 1.25
-    a_mat = fresnel_mat("cloudA", CYAN, strength=11.0, alpha=0.10, power=2.2)
-    b_mat = fresnel_mat("cloudB", (1.0, 0.52, 0.30), strength=11.0, alpha=0.10, power=2.2)
+    a_mat = fresnel_mat("cloudA", CYAN, strength=8.0, power=1.7)
+    b_mat = fresnel_mat("cloudB", (1.0, 0.52, 0.30), strength=8.0, power=1.7)
     A = sphere("cloudA", R, (-3.4, 0, 0), a_mat, subdiv=4)
     B = sphere("cloudB", R, (3.4, 0, 0), b_mat, subdiv=4)
     for ob, sign in ((A, 1.0), (B, -1.0)):
@@ -703,9 +703,9 @@ def shot_contact(f0, f1, macro=False):
             ob.keyframe_insert("location", frame=fr)
             ob.keyframe_insert("scale", frame=fr)
         ease(ob)
-    e_mat = make_mat("e2", base=CYAN, rough=0.2, emit=(0.62, 0.95, 1.0), emit_strength=7.0)
+    e_mat = make_mat("e2", base=CYAN, rough=0.2, emit=(0.62, 0.95, 1.0), emit_strength=3.0)
     e2_mat = make_mat("e3", base=(1.0, 0.66, 0.4), rough=0.2,
-                      emit=(1.0, 0.6, 0.32), emit_strength=7.0)
+                      emit=(1.0, 0.6, 0.32), emit_strength=3.0)
     for i in range(34):
         u = (i * 0.7548776662) % 1.0
         v = (i * 0.5698402910) % 1.0
@@ -714,7 +714,7 @@ def shot_contact(f0, f1, macro=False):
         for ob, mat, side in ((A, e_mat, -1), (B, e2_mat, 1)):
             loc = (side * R * abs(math.sin(ph) * math.cos(th)),
                    R * math.sin(ph) * math.sin(th), R * math.cos(ph))
-            e = sphere(f"p{i}{side}", 0.03, loc, mat, subdiv=1)
+            e = sphere(f"p{i}{side}", 0.026, loc, mat, subdiv=2)
             e.parent = ob
             e.matrix_parent_inverse = ob.matrix_world.inverted()
             e.location = loc
@@ -760,8 +760,8 @@ def shot_feeling(f0, f1):
 def shot_void(f0, f1):
     """12 — atoms are almost all space: one atom alone in the dark."""
     nucleon_cluster(f0, f1, radius=0.085, count=10, nuc_r=0.028, glow=1.6)
-    atom_shell(2.15, color=CYAN, name="voidshell", strength=9.0, alpha=0.045)
-    electron_cloud(f0, f1, radius=2.1, count=80, size=0.016, glow=7.0)
+    atom_shell(2.15, color=CYAN, name="voidshell", strength=7.5, power=2.4)
+    electron_cloud(f0, f1, radius=2.1, count=80, size=0.016, glow=3.4)
     key = area_light((2.8, -2.8, 2.4), (0, 0, 0), 2.8, 300, (0.6, 0.86, 1.0))
     rim = area_light((-2.8, 2.0, -1.7), (0, 0, 0), 2.8, 260, (1.0, 0.52, 0.28))
     light_flicker(key, f0, f1, 300, 0.06, 0.3)
