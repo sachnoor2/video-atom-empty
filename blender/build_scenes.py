@@ -271,7 +271,7 @@ def pulse(ob, f0, f1, amp=0.06, nkeys=6, phase=0.0):
     ease(ob)
 
 
-def dust(f0, f1, n=22, spread=6.0, r=0.02, mat=None, z0=-1.0, z1=3.0):
+def dust(f0, f1, n=10, spread=6.0, r=0.02, mat=None, z0=-1.0, z1=3.0):
     """Floating motes: secondary motion in every shot."""
     mat = mat or make_mat("dust", base=(0.55, 0.75, 0.9), rough=0.5,
                           emit=(0.55, 0.85, 1.0), emit_strength=2.0)
@@ -308,11 +308,11 @@ def setup_render(f0, f1, samples=48):
     sc.render.image_settings.color_mode = "RGB"
     sc.render.image_settings.compression = 60
     sc.render.use_motion_blur = True
-    sc.render.motion_blur_shutter = 0.5
+    sc.render.motion_blur_shutter = 0.35
     sc.cycles.device = "CPU"
     sc.cycles.samples = samples
     sc.cycles.use_adaptive_sampling = True
-    sc.cycles.adaptive_threshold = 0.02
+    sc.cycles.adaptive_threshold = 0.05
     sc.cycles.use_denoising = True
     try:
         sc.cycles.denoiser = "OPENIMAGEDENOISE"
@@ -324,9 +324,9 @@ def setup_render(f0, f1, samples=48):
             setattr(sc.cycles, attr, False)
         except Exception:
             pass
-    sc.cycles.max_bounces = 5
-    sc.cycles.transmission_bounces = 6
-    sc.cycles.transparent_max_bounces = 10
+    sc.cycles.max_bounces = 4
+    sc.cycles.transmission_bounces = 4
+    sc.cycles.transparent_max_bounces = 4
     sc.cycles.caustics_reflective = False
     sc.cycles.caustics_refractive = False
     sc.cycles.seed = 7
@@ -402,7 +402,7 @@ def wipe():
                 pass
 
 
-def reset(samples=48, f0=0, f1=90):
+def reset(samples=20, f0=0, f1=90):
     wipe()
     try:
         bpy.context.preferences.edit.keyframe_new_interpolation_type = "BEZIER"
@@ -411,15 +411,14 @@ def reset(samples=48, f0=0, f1=90):
         pass
     setup_world()
     setup_render(f0, f1, samples)
-    add_glare()
 
 
 # ---------------------------------------------------------------- elements
 def nucleon_cluster(f0, f1, radius=0.85, count=14, nuc_r=0.28, glow=0.55):
     """A nucleus: protons deep cyan, neutrons deep magenta, all jiggling."""
-    mp = make_mat("proton", base=(0.012, 0.105, 0.165), rough=0.14, coat=1.0,
+    mp = make_mat("proton", base=(0.012, 0.105, 0.165), rough=0.16, coat=0.35,
                   emit=CYAN, emit_strength=glow * 0.16)
-    mn = make_mat("neutron", base=(0.150, 0.020, 0.195), rough=0.16, coat=1.0,
+    mn = make_mat("neutron", base=(0.150, 0.020, 0.195), rough=0.18, coat=0.35,
                   emit=MAGENTA, emit_strength=glow * 0.13)
     grp = bpy.data.objects.new("cluster", None)
     bpy.context.scene.collection.objects.link(grp)
@@ -438,7 +437,7 @@ def nucleon_cluster(f0, f1, radius=0.85, count=14, nuc_r=0.28, glow=0.55):
     return grp
 
 
-def electron_cloud(f0, f1, radius=2.4, count=110, size=0.02, glow=3.2, shells=(0.84, 1.0)):
+def electron_cloud(f0, f1, radius=2.4, count=64, size=0.024, glow=3.2, shells=(0.84, 1.0)):
     mat = make_mat("electron", base=(0.35, 0.9, 1.0), rough=0.2,
                    emit=(0.55, 0.92, 1.0), emit_strength=glow)
     grp = bpy.data.objects.new("cloud", None)
@@ -494,7 +493,7 @@ def lattice(f0, f1, n=7, depth=3, radius=0.54, step=1.03, xray=False):
 
 def shot_table(f0, f1):
     """01 — solid matter up close: a packed crystal wall of atoms."""
-    lattice(f0, f1, n=7, depth=3)
+    lattice(f0, f1, n=5, depth=3, step=1.15)
     key = area_light((3.4, -9.0, 3.0), (0, 0, 0), 3.0, 900, (0.62, 0.88, 1.0))
     rim = area_light((-3.6, 1.4, -1.6), (0, 0, 0), 3.4, 700, (1.0, 0.55, 0.28))
     top = area_light((0.0, -6.0, 5.0), (0, 0, 0), 4.0, 420, (0.75, 0.9, 1.0))
@@ -546,7 +545,7 @@ def shot_pullback(f0, f1):
     """04 — a hundred thousand times smaller: pull back to the whole atom."""
     nucleon_cluster(f0, f1, radius=0.11, count=12, nuc_r=0.038, glow=1.1)
     atom_shell(2.45, color=CYAN, name="shell", strength=4.2, power=3.2)
-    electron_cloud(f0, f1, radius=2.4, count=110, size=0.018, glow=3.4)
+    electron_cloud(f0, f1, radius=2.4, count=72, size=0.022, glow=3.4)
     key = area_light((3.0, -3.2, 2.8), (0, 0, 0), 3.2, 340, (0.62, 0.88, 1.0))
     rim = area_light((-3.2, 1.9, -1.9), (0, 0, 0), 3.4, 300, (1.0, 0.52, 0.28))
     light_flicker(key, f0, f1, 340, 0.05, 0.2)
@@ -618,7 +617,7 @@ def shot_crosssection(f0, f1):
     pulse(ring, f0, f1, amp=0.004, nkeys=4)
 
     nucleon_cluster(f0, f1, radius=0.095, count=12, nuc_r=0.032, glow=1.2)
-    electron_cloud(f0, f1, radius=2.5, count=70, size=0.016, glow=3.2, shells=(0.93, 1.0))
+    electron_cloud(f0, f1, radius=2.5, count=54, size=0.020, glow=3.2, shells=(0.93, 1.0))
     key = area_light((2.6, -2.0, 2.2), (0, 0, 0), 2.8, 300, (0.62, 0.88, 1.0))
     rim = area_light((-2.8, -0.8, -2.0), (0, 0, 0), 3.0, 260, (1.0, 0.5, 0.26))
     light_flicker(key, f0, f1, 300, 0.06, 0.9)
@@ -657,8 +656,8 @@ def shot_fields(f0, f1):
     nucleon_cluster(f0, f1, radius=0.30, count=10, nuc_r=0.115, glow=1.0)
     line_mat = make_mat("field", base=(0.35, 0.92, 1.0), rough=0.2,
                         emit=(0.30, 0.92, 1.0), emit_strength=2.2)
-    for i in range(7):
-        a = i * 2 * math.pi / 7
+    for i in range(5):
+        a = i * 2 * math.pi / 5
         ring = torus(f"ring{i}", 1.05 + 0.24 * i, 0.0070, (0, 0, 0), line_mat,
                      rot=(math.radians(74), math.radians(11 * i), a))
         k0 = 0.8 + 0.02 * i
@@ -668,7 +667,7 @@ def shot_fields(f0, f1):
         ring.scale = (k0, k0, k0)
         ease(ring)
         spin(ring, f0, f1, turns=0.1 * (1 if i % 2 else -1), axis="Z")
-    electron_cloud(f0, f1, radius=1.8, count=40, size=0.022, glow=3.0)
+    electron_cloud(f0, f1, radius=1.8, count=32, size=0.026, glow=3.0)
     key = point_light((0, 0, 0), 26, (0.6, 0.95, 1.0), radius=0.25)
     light_flicker(key, f0, f1, 26, 0.2, 0.3, nkeys=8)
     rim = area_light((-2.3, 1.6, 1.4), (0, 0, 0), 2.4, 230, (1.0, 0.52, 0.26))
@@ -702,7 +701,7 @@ def shot_contact(f0, f1, macro=False):
     e_mat = make_mat("e2", base=CYAN, rough=0.2, emit=(0.62, 0.95, 1.0), emit_strength=3.0)
     e2_mat = make_mat("e3", base=(1.0, 0.66, 0.4), rough=0.2,
                       emit=(1.0, 0.6, 0.32), emit_strength=3.0)
-    for i in range(34):
+    for i in range(22):
         u = (i * 0.7548776662) % 1.0
         v = (i * 0.5698402910) % 1.0
         th = 2 * math.pi * u
@@ -757,7 +756,7 @@ def shot_void(f0, f1):
     """12 — atoms are almost all space: one atom alone in the dark."""
     nucleon_cluster(f0, f1, radius=0.085, count=10, nuc_r=0.028, glow=1.6)
     atom_shell(1.25, color=CYAN, name="voidshell", strength=4.5, power=3.0)
-    electron_cloud(f0, f1, radius=1.2, count=80, size=0.012, glow=3.4)
+    electron_cloud(f0, f1, radius=1.2, count=54, size=0.014, glow=3.4)
     key = area_light((2.8, -2.8, 2.4), (0, 0, 0), 2.8, 300, (0.6, 0.86, 1.0))
     rim = area_light((-2.8, 2.0, -1.7), (0, 0, 0), 2.8, 260, (1.0, 0.52, 0.28))
     light_flicker(key, f0, f1, 300, 0.06, 0.3)
@@ -792,7 +791,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--shotlist", default="shotlist.json")
     ap.add_argument("--out", default="scenes")
-    ap.add_argument("--samples", type=int, default=48)
+    ap.add_argument("--samples", type=int, default=20)
     ap.add_argument("--only", default="")
     args = ap.parse_args()
 

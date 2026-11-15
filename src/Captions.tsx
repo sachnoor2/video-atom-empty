@@ -39,12 +39,8 @@ export const Captions: React.FC<{text: string; dur: number}> = ({text, dur}) => 
   if (!active) return null;
 
   const local = frame - active.from;
-  const pop = interpolate(local, [0, 5], [0.94, 1], {extrapolateRight: 'clamp'});
-  const opacity = interpolate(local, [0, 4], [0, 1], {extrapolateRight: 'clamp'});
-  const out = interpolate(frame, [active.to - 4, active.to], [1, 0.15], {
-    extrapolateLeft: 'clamp',
-    extrapolateRight: 'clamp',
-  });
+  const pop = interpolate(local, [0, 4], [0.95, 1], {extrapolateRight: 'clamp'});
+  const opacity = interpolate(local, [0, 3], [0, 1], {extrapolateRight: 'clamp'});
 
   return (
     <AbsoluteFill style={{pointerEvents: 'none'}}>
@@ -56,22 +52,26 @@ export const Captions: React.FC<{text: string; dur: number}> = ({text, dur}) => 
           bottom: CAPTION_BOTTOM,
           display: 'flex',
           justifyContent: 'center',
-          padding: '0 8%',
+          padding: '0 6%',
         }}
       >
         <div
           style={{
             fontFamily: CAPTION_FONT,
             fontWeight: 800,
-            fontSize: 62,
-            lineHeight: 1.1,
-            letterSpacing: '-0.02em',
+            fontSize: 66,
+            lineHeight: 1.12,
+            letterSpacing: '-0.015em',
             color: COLORS.bone,
             textAlign: 'center',
             maxWidth: '100%',
+            padding: '10px 22px 14px',
+            borderRadius: 14,
+            background: 'rgba(3,6,12,0.34)',
             transform: `scale(${pop})`,
-            opacity: opacity * out,
-            textShadow: '0 4px 18px rgba(0,0,0,0.72), 0 0 2px rgba(0,0,0,0.6)',
+            opacity,
+            textShadow:
+              '0 4px 16px rgba(0,0,0,0.85), 0 1px 2px rgba(0,0,0,0.9), 0 0 26px rgba(0,0,0,0.5)',
           }}
         >
           {active.text}

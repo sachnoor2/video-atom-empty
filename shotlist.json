@@ -21,7 +21,7 @@
         "light flicker",
         "foreground blur"
       ],
-      "samples": 48
+      "samples": 20
     },
     {
       "id": "02-empty",
@@ -38,7 +38,7 @@
         "dust motes",
         "light flicker"
       ],
-      "samples": 48
+      "samples": 20
     },
     {
       "id": "03-atom",
@@ -55,7 +55,7 @@
         "dust motes",
         "light flicker"
       ],
-      "samples": 48
+      "samples": 20
     },
     {
       "id": "04-nucleus",
@@ -72,7 +72,7 @@
         "dust motes",
         "light flicker"
       ],
-      "samples": 48
+      "samples": 20
     },
     {
       "id": "05-marble",
@@ -89,7 +89,7 @@
         "grid parallax",
         "light flicker"
       ],
-      "samples": 48
+      "samples": 20
     },
     {
       "id": "06-percent",
@@ -106,7 +106,7 @@
         "camera track",
         "dust motes"
       ],
-      "samples": 48
+      "samples": 20
     },
     {
       "id": "07-mass",
@@ -123,7 +123,7 @@
         "dust motes",
         "light flicker"
       ],
-      "samples": 48
+      "samples": 20
     },
     {
       "id": "08-fields",
@@ -140,7 +140,7 @@
         "electron drift",
         "light flicker"
       ],
-      "samples": 48
+      "samples": 20
     },
     {
       "id": "09-touch",
@@ -157,7 +157,7 @@
         "dust motes",
         "light flicker"
       ],
-      "samples": 48
+      "samples": 20
     },
     {
       "id": "10-push",
@@ -174,7 +174,7 @@
         "camera orbit",
         "light flicker"
       ],
-      "samples": 48
+      "samples": 20
     },
     {
       "id": "11-feeling",
@@ -191,7 +191,7 @@
         "core twinkle",
         "dust motes"
       ],
-      "samples": 48
+      "samples": 20
     },
     {
       "id": "12-space",
@@ -208,7 +208,7 @@
         "dust motes",
         "light flicker"
       ],
-      "samples": 48
+      "samples": 20
     }
   ]
 }

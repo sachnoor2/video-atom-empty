@@ -1,11 +1,13 @@
-"""Render shots as an absolute PNG sequence, building each scene in-process.
+"""Render shots (or an absolute frame range) as a PNG sequence, building each
+scene in-process.
 
 The scene for a shot is rebuilt from blender/build_scenes.py rather than opened
 from a .blend: in the bpy module a file reload tears down the running script, and
 rebuilding is a few seconds either way.
 
-Run: python blender/render_shot.py --shotlist shotlist.json --out out/frames \
-        --shots 0,1 [--samples 48]
+Run:
+  python blender/render_shot.py --shotlist shotlist.json --out frames --from 0 --to 69
+  python blender/render_shot.py --shotlist shotlist.json --out preview --shots 3 --preview 2
 """
 import argparse
 import importlib.util
@@ -31,6 +33,8 @@ def main():
     ap.add_argument("--shotlist", default="shotlist.json")
     ap.add_argument("--out", default="out/frames")
     ap.add_argument("--shots", default="")
+    ap.add_argument("--from", dest="frm", type=int, default=None)
+    ap.add_argument("--to", dest="to", type=int, default=None)
     ap.add_argument("--samples", type=int, default=0)
     ap.add_argument("--preview", type=int, default=0,
                     help="render N evenly spaced frames per shot instead of the full range")
@@ -38,34 +42,44 @@ def main():
 
     with open(args.shotlist) as fh:
         shots = json.load(fh)["shots"]
-    want = ([int(x) for x in args.shots.split(",") if x.strip() != ""]
-            if args.shots else list(range(len(shots))))
-
-    bs = load_builder()
     os.makedirs(args.out, exist_ok=True)
+    bs = load_builder()
 
-    for idx in want:
-        shot = shots[idx]
+    if args.frm is not None:
+        lo = args.frm
+        hi = args.to if args.to is not None else shots[-1]["end"]
+        todo = []
+        for idx, shot in enumerate(shots):
+            a, b = max(shot["start"], lo), min(shot["end"], hi)
+            if a <= b:
+                todo.append((idx, shot, list(range(a, b + 1))))
+    else:
+        want = ([int(x) for x in args.shots.split(",") if x.strip() != ""]
+                if args.shots else list(range(len(shots))))
+        todo = []
+        for idx in want:
+            shot = shots[idx]
+            if args.preview:
+                span = shot["end"] - shot["start"]
+                frames = sorted({shot["start"] + int(round(span * k / max(args.preview - 1, 1)))
+                                 for k in range(args.preview)})
+            else:
+                frames = list(range(shot["start"], shot["end"] + 1))
+            todo.append((idx, shot, frames))
+
+    import bpy
+    for idx, shot, frames in todo:
         samples = args.samples or shot.get("samples", 48)
         bs.reset(samples=samples, f0=shot["start"], f1=shot["end"])
         bs.BUILDERS[idx](shot["start"], shot["end"])
-        import bpy
         sc = bpy.context.scene
         sc.render.use_persistent_data = True
-        if args.preview:
-            span = shot["end"] - shot["start"]
-            frames = sorted({shot["start"] + int(round(span * k / max(args.preview - 1, 1)))
-                             for k in range(args.preview)})
-        else:
-            frames = list(range(shot["start"], shot["end"] + 1))
         times = []
         for f in frames:
             t0 = time.time()
             sc.frame_set(f)
-            if args.preview:
-                name = f"preview_{shot['id']}_{f:06d}.png"
-            else:
-                name = f"frame_{f:06d}.png"
+            name = (f"preview_{shot['id']}_{f:06d}.png" if args.preview
+                    else f"frame_{f:06d}.png")
             sc.render.filepath = os.path.join(os.path.abspath(args.out), name)
             bpy.ops.render.render(write_still=True)
             times.append(time.time() - t0)

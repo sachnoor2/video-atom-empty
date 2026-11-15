@@ -50,7 +50,7 @@ def main():
             "audio": sc["audio"],
             "camera": CAMERA[i % len(CAMERA)],
             "motion": MOTION[i % len(MOTION)],
-            "samples": 48,
+            "samples": 20,
         })
         cursor += frames
 
@@ -64,12 +64,20 @@ def main():
     print(f"SHOTLIST {args.out}: {len(shots)} shots, {total} frames, "
           f"{doc['durationSeconds']}s, {doc['shotsPerMinute']} shots/min")
 
-    # shard plan: one shard per shot, all rendered in parallel
-    plan = [{"index": i, "shots": [i], "frames": s["end"] - s["start"] + 1}
-            for i, s in enumerate(shots)]
+    # shard plan: ~20 equal frame ranges, so every Cycles job costs the same and
+    # the whole film renders in one wave. Frames are independent PNGs; a shard
+    # boundary may fall inside a shot without any harm.
+    n_shards = min(20, max(1, total // 40))
+    size = math.ceil(total / n_shards)
+    plan = []
+    f = 0
+    while f < total:
+        to = min(f + size - 1, total - 1)
+        plan.append({"index": len(plan), "from": f, "to": to, "frames": to - f + 1})
+        f = to + 1
     with open("shardplan.json", "w") as fh:
         json.dump(plan, fh)
-    print("SHARDPLAN " + json.dumps(plan))
+    print("SHARDPLAN " + json.dumps([(p["index"], p["from"], p["to"]) for p in plan]))
 
 
 if __name__ == "__main__":

@@ -138,7 +138,7 @@ jobs:
           python scripts/foley.py --shotlist shotlist.json
       - id: plan
         run: |
-          echo "shards=$(python -c 'import json;print(json.dumps([s["index"] for s in json.load(open("shardplan.json"))]))')" >> "$GITHUB_OUTPUT"
+          echo "shards=$(python -c 'import json;print(json.dumps(json.load(open("shardplan.json"))))')" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v4
         with:
           name: audio
@@ -179,13 +179,14 @@ jobs:
         with:
           name: audio
           path: .
-      - name: Render shard (absolute frame range from the shot list)
+      - name: Render shard (absolute frame range from the shard plan)
         run: |
-          python blender/render_shot.py --shotlist shotlist.json --out frames --shots ${{ matrix.shard }}
+          python blender/render_shot.py --shotlist shotlist.json --out frames \
+            --from ${{ matrix.shard.from }} --to ${{ matrix.shard.to }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: frames-${{ matrix.shard }}
+          name: frames-${{ matrix.shard.index }}
           path: frames/*.png
           retention-days: 7
 
