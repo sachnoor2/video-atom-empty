@@ -1,0 +1,94 @@
+{
+  "fps": 30,
+  "width": 720,
+  "height": 1280,
+  "pad": 0.65,
+  "totalFrames": 1392,
+  "durationSeconds": 46.4,
+  "scenes": [
+    {
+      "id": "01-table",
+      "text": "Look at this table. It feels solid.",
+      "seconds": 2.745,
+      "frames": 102,
+      "audio": "audio/01-table.wav"
+    },
+    {
+      "id": "02-empty",
+      "text": "It is almost entirely empty space.",
+      "seconds": 2.6,
+      "frames": 98,
+      "audio": "audio/02-empty.wav"
+    },
+    {
+      "id": "03-atom",
+      "text": "Every atom is a nucleus, wrapped in electrons.",
+      "seconds": 3.137,
+      "frames": 114,
+      "audio": "audio/03-atom.wav"
+    },
+    {
+      "id": "04-nucleus",
+      "text": "The nucleus is a hundred thousand times smaller.",
+      "seconds": 3.137,
+      "frames": 114,
+      "audio": "audio/04-nucleus.wav"
+    },
+    {
+      "id": "05-marble",
+      "text": "If the nucleus were a marble, the atom would be a kilometre wide.",
+      "seconds": 5.098,
+      "frames": 172,
+      "audio": "audio/05-marble.wav"
+    },
+    {
+      "id": "06-percent",
+      "text": "So an atom is more than ninety nine point nine percent empty.",
+      "seconds": 4.706,
+      "frames": 161,
+      "audio": "audio/06-percent.wav"
+    },
+    {
+      "id": "07-mass",
+      "text": "Almost all of its mass sits in that tiny core.",
+      "seconds": 3.922,
+      "frames": 137,
+      "audio": "audio/07-mass.wav"
+    },
+    {
+      "id": "08-fields",
+      "text": "The rest is fields, not stuff.",
+      "seconds": 2.6,
+      "frames": 98,
+      "audio": "audio/08-fields.wav"
+    },
+    {
+      "id": "09-touch",
+      "text": "You never actually touch anything.",
+      "seconds": 2.6,
+      "frames": 98,
+      "audio": "audio/09-touch.wav"
+    },
+    {
+      "id": "10-push",
+      "text": "Electrons push other electrons away.",
+      "seconds": 2.6,
+      "frames": 98,
+      "audio": "audio/10-push.wav"
+    },
+    {
+      "id": "11-feeling",
+      "text": "Solid is a feeling, not a fact.",
+      "seconds": 2.745,
+      "frames": 102,
+      "audio": "audio/11-feeling.wav"
+    },
+    {
+      "id": "12-space",
+      "text": "Atoms are almost all space.",
+      "seconds": 2.6,
+      "frames": 98,
+      "audio": "audio/12-space.wav"
+    }
+  ]
+}
