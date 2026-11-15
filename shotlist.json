@@ -1,0 +1,214 @@
+{
+  "fps": 30,
+  "width": 720,
+  "height": 1280,
+  "totalFrames": 1392,
+  "durationSeconds": 46.4,
+  "shotsPerMinute": 15.52,
+  "shots": [
+    {
+      "id": "01-table",
+      "text": "Look at this table. It feels solid.",
+      "start": 0,
+      "end": 101,
+      "seconds": 3.4,
+      "blend": "scenes/01-table.blend",
+      "audio": "audio/01-table.wav",
+      "camera": "push-in",
+      "motion": [
+        "lattice vibration",
+        "dust motes",
+        "light flicker",
+        "foreground blur"
+      ],
+      "samples": 48
+    },
+    {
+      "id": "02-empty",
+      "text": "It is almost entirely empty space.",
+      "start": 102,
+      "end": 199,
+      "seconds": 3.267,
+      "blend": "scenes/02-empty.blend",
+      "audio": "audio/02-empty.wav",
+      "camera": "push-in",
+      "motion": [
+        "lattice shimmer",
+        "core twinkle",
+        "dust motes",
+        "light flicker"
+      ],
+      "samples": 48
+    },
+    {
+      "id": "03-atom",
+      "text": "Every atom is a nucleus, wrapped in electrons.",
+      "start": 200,
+      "end": 313,
+      "seconds": 3.8,
+      "blend": "scenes/03-atom.blend",
+      "audio": "audio/03-atom.wav",
+      "camera": "orbit",
+      "motion": [
+        "nucleon jiggle",
+        "cluster rotation",
+        "dust motes",
+        "light flicker"
+      ],
+      "samples": 48
+    },
+    {
+      "id": "04-nucleus",
+      "text": "The nucleus is a hundred thousand times smaller.",
+      "start": 314,
+      "end": 427,
+      "seconds": 3.8,
+      "blend": "scenes/04-nucleus.blend",
+      "audio": "audio/04-nucleus.wav",
+      "camera": "pull-back",
+      "motion": [
+        "electron drift",
+        "camera pull-back",
+        "dust motes",
+        "light flicker"
+      ],
+      "samples": 48
+    },
+    {
+      "id": "05-marble",
+      "text": "If the nucleus were a marble, the atom would be a kilometre wide.",
+      "start": 428,
+      "end": 599,
+      "seconds": 5.733,
+      "blend": "scenes/05-marble.blend",
+      "audio": "audio/05-marble.wav",
+      "camera": "pull-back",
+      "motion": [
+        "marble rotation",
+        "dome rim pulse",
+        "grid parallax",
+        "light flicker"
+      ],
+      "samples": 48
+    },
+    {
+      "id": "06-percent",
+      "text": "So an atom is more than ninety nine point nine percent empty.",
+      "start": 600,
+      "end": 760,
+      "seconds": 5.367,
+      "blend": "scenes/06-percent.blend",
+      "audio": "audio/06-percent.wav",
+      "camera": "track",
+      "motion": [
+        "electron drift",
+        "core jiggle",
+        "camera track",
+        "dust motes"
+      ],
+      "samples": 48
+    },
+    {
+      "id": "07-mass",
+      "text": "Almost all of its mass sits in that tiny core.",
+      "start": 761,
+      "end": 897,
+      "seconds": 4.567,
+      "blend": "scenes/07-mass.blend",
+      "audio": "audio/07-mass.wav",
+      "camera": "push-in",
+      "motion": [
+        "core pulse",
+        "nucleon jiggle",
+        "dust motes",
+        "light flicker"
+      ],
+      "samples": 48
+    },
+    {
+      "id": "08-fields",
+      "text": "The rest is fields, not stuff.",
+      "start": 898,
+      "end": 995,
+      "seconds": 3.267,
+      "blend": "scenes/08-fields.blend",
+      "audio": "audio/08-fields.wav",
+      "camera": "orbit",
+      "motion": [
+        "field ring pulse",
+        "ring rotation",
+        "electron drift",
+        "light flicker"
+      ],
+      "samples": 48
+    },
+    {
+      "id": "09-touch",
+      "text": "You never actually touch anything.",
+      "start": 996,
+      "end": 1093,
+      "seconds": 3.267,
+      "blend": "scenes/09-touch.blend",
+      "audio": "audio/09-touch.wav",
+      "camera": "push-in",
+      "motion": [
+        "cloud approach",
+        "surface sparkle",
+        "dust motes",
+        "light flicker"
+      ],
+      "samples": 48
+    },
+    {
+      "id": "10-push",
+      "text": "Electrons push other electrons away.",
+      "start": 1094,
+      "end": 1191,
+      "seconds": 3.267,
+      "blend": "scenes/10-push.blend",
+      "audio": "audio/10-push.wav",
+      "camera": "orbit",
+      "motion": [
+        "cloud squash",
+        "surface sparkle",
+        "camera orbit",
+        "light flicker"
+      ],
+      "samples": 48
+    },
+    {
+      "id": "11-feeling",
+      "text": "Solid is a feeling, not a fact.",
+      "start": 1192,
+      "end": 1293,
+      "seconds": 3.4,
+      "blend": "scenes/11-feeling.blend",
+      "audio": "audio/11-feeling.wav",
+      "camera": "pull-back",
+      "motion": [
+        "lattice shimmer",
+        "camera pull-back",
+        "core twinkle",
+        "dust motes"
+      ],
+      "samples": 48
+    },
+    {
+      "id": "12-space",
+      "text": "Atoms are almost all space.",
+      "start": 1294,
+      "end": 1391,
+      "seconds": 3.267,
+      "blend": "scenes/12-space.blend",
+      "audio": "audio/12-space.wav",
+      "camera": "orbit",
+      "motion": [
+        "electron drift",
+        "camera orbit",
+        "dust motes",
+        "light flicker"
+      ],
+      "samples": 48
+    }
+  ]
+}
