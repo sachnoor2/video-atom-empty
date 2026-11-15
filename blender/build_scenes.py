@@ -495,16 +495,16 @@ def lattice(f0, f1, n=7, depth=3, radius=0.54, step=1.03, xray=False):
 def shot_table(f0, f1):
     """01 — solid matter up close: a packed crystal wall of atoms."""
     lattice(f0, f1, n=7, depth=3)
-    key = area_light((3.4, -4.2, 3.0), (0, 0, 0), 3.0, 320, (0.62, 0.88, 1.0))
-    rim = area_light((-3.6, 1.4, -1.6), (0, 0, 0), 3.4, 260, (1.0, 0.55, 0.28))
-    top = area_light((0.0, 0.6, 5.0), (0, 0, 0), 4.0, 160, (0.75, 0.9, 1.0))
-    light_flicker(key, f0, f1, 320, 0.05, 0.3)
-    light_flicker(rim, f0, f1, 260, 0.09, 1.1)
+    key = area_light((3.4, -9.0, 3.0), (0, 0, 0), 3.0, 900, (0.62, 0.88, 1.0))
+    rim = area_light((-3.6, 1.4, -1.6), (0, 0, 0), 3.4, 700, (1.0, 0.55, 0.28))
+    top = area_light((0.0, -6.0, 5.0), (0, 0, 0), 4.0, 420, (0.75, 0.9, 1.0))
+    light_flicker(key, f0, f1, 900, 0.05, 0.3)
+    light_flicker(rim, f0, f1, 700, 0.09, 1.1)
     dust(f0, f1, n=18, spread=3.2, r=0.012, z0=-1.4, z1=1.6)
-    cam = add_camera((0.0, -7.6, 0.5), (0, 0, 0), lens=62, fstop=2.2, focus=7.7)
-    cam_keys(cam, [(f0, (0.0, -7.6, 0.5), (0, 0, 0)),
-                   (f1, (0.28, -5.4, 0.14), (0, 0.4, 0))])
-    focus_keys(cam, [(f0, 7.7), (f1, 5.6)])
+    cam = add_camera((0.0, -17.0, 0.6), (0, 0, 0), lens=45, fstop=2.2, focus=13.4)
+    cam_keys(cam, [(f0, (0.0, -17.0, 0.6), (0, 0, 0)),
+                   (f1, (0.25, -12.5, 0.18), (0, 0.4, 0))])
+    focus_keys(cam, [(f0, 13.4), (f1, 8.9)])
     fg_bokeh(cam, f0, f1, dist=0.9, r=0.12)
     return cam
 
@@ -517,10 +517,10 @@ def shot_empty(f0, f1):
     light_flicker(key, f0, f1, 240, 0.07, 0.6)
     light_flicker(rim, f0, f1, 220, 0.1, 1.9)
     dust(f0, f1, n=20, spread=2.8, r=0.014, z0=-1.2, z1=1.4)
-    cam = add_camera((0.0, -6.4, 0.45), (0, 0, 0), lens=58, fstop=2.0, focus=6.5)
-    cam_keys(cam, [(f0, (0.0, -6.4, 0.45), (0, 0, 0)),
+    cam = add_camera((0.0, -10.5, 0.5), (0, 0, 0), lens=50, fstop=2.0, focus=7.0)
+    cam_keys(cam, [(f0, (0.0, -10.5, 0.5), (0, 0, 0)),
                    (f1, (0.22, 0.9, 0.10), (0, 2.4, 0))])
-    focus_keys(cam, [(f0, 6.5), (f1, 1.4)])
+    focus_keys(cam, [(f0, 7.0), (f1, 1.4)])
     fg_bokeh(cam, f0, f1, dist=0.85, r=0.11)
     return cam
 
@@ -528,7 +528,7 @@ def shot_empty(f0, f1):
 def shot_nucleus(f0, f1):
     """03 — the nucleus itself: the whole atom's mass in one speck."""
     nucleon_cluster(f0, f1, radius=0.60, count=15, nuc_r=0.195, glow=1.1)
-    atom_shell(1.30, color=CYAN, name="halo", strength=3.5, power=2.0)
+    atom_shell(1.30, color=CYAN, name="halo", strength=1.8, power=2.6)
     key = area_light((1.9, -2.3, 1.9), (0, 0, 0), 1.8, 210, (0.66, 0.9, 1.0))
     rim = area_light((-2.1, 1.3, -1.5), (0, 0, 0), 2.2, 260, (1.0, 0.5, 0.26))
     light_flicker(key, f0, f1, 210, 0.06, 0.5)
@@ -545,7 +545,7 @@ def shot_nucleus(f0, f1):
 def shot_pullback(f0, f1):
     """04 — a hundred thousand times smaller: pull back to the whole atom."""
     nucleon_cluster(f0, f1, radius=0.11, count=12, nuc_r=0.038, glow=1.1)
-    atom_shell(2.45, color=CYAN, name="shell", strength=7.0, power=2.4)
+    atom_shell(2.45, color=CYAN, name="shell", strength=4.2, power=3.2)
     electron_cloud(f0, f1, radius=2.4, count=110, size=0.018, glow=3.4)
     key = area_light((3.0, -3.2, 2.8), (0, 0, 0), 3.2, 340, (0.62, 0.88, 1.0))
     rim = area_light((-3.2, 1.9, -1.9), (0, 0, 0), 3.4, 300, (1.0, 0.52, 0.28))
@@ -592,16 +592,16 @@ def shot_marble(f0, f1):
     point_light((0, -4, 5), 260, (1.0, 0.82, 0.6), radius=1.6)
     dust(f0, f1, n=12, spread=70.0, r=1.4, z0=3.0, z1=60.0)
 
-    cam = add_camera((0.0, -8.0, 2.6), (0, 0, 1.2), lens=40, fstop=2.2, focus=8.1)
-    cam_keys(cam, [(f0, (0.0, -8.0, 2.6), (0, 0, 1.2)),
+    cam = add_camera((0.0, -15.0, 4.2), (0, 0, 1.2), lens=40, fstop=2.2, focus=15.1)
+    cam_keys(cam, [(f0, (0.0, -15.0, 4.2), (0, 0, 1.2)),
                    (f1, (0.0, -540.0, 290.0), (0, 0, 60.0))])
-    focus_keys(cam, [(f0, 8.1), (f1, 570.0)])
+    focus_keys(cam, [(f0, 15.1), (f1, 570.0)])
     return cam
 
 
 def shot_crosssection(f0, f1):
     """06 — cut the atom open: almost all of it is nothing."""
-    s = atom_shell(2.55, color=CYAN, name="cut", strength=7.0, power=2.4)
+    s = atom_shell(2.55, color=CYAN, name="cut", strength=4.2, power=3.2)
     bpy.ops.mesh.primitive_cube_add(size=6.0, location=(0, 3.1, 0))
     cutter = bpy.context.active_object
     cutter.name = "cutter"
@@ -624,10 +624,10 @@ def shot_crosssection(f0, f1):
     light_flicker(key, f0, f1, 300, 0.06, 0.9)
     light_flicker(rim, f0, f1, 260, 0.09, 1.9)
     dust(f0, f1, n=16, spread=3.0, r=0.016)
-    cam = add_camera((-2.3, -3.0, 0.85), (0, 0, 0), lens=46, fstop=2.0, focus=3.9)
-    cam_keys(cam, [(f0, (-2.3, -3.0, 0.85), (0, 0, 0)),
-                   (f1, (2.0, -3.6, 0.2), (0, 0, 0))])
-    focus_keys(cam, [(f0, 3.9), (f1, 4.2)])
+    cam = add_camera((-4.6, -8.4, 1.8), (0, 0, 0), lens=40, fstop=2.0, focus=9.6)
+    cam_keys(cam, [(f0, (-4.6, -8.4, 1.8), (0, 0, 0)),
+                   (f1, (4.2, -9.6, 0.5), (0, 0, 0))])
+    focus_keys(cam, [(f0, 9.6), (f1, 10.5)])
     fg_bokeh(cam, f0, f1, dist=0.8, r=0.12)
     return cam
 
@@ -644,10 +644,10 @@ def shot_core(f0, f1):
     light_flicker(key, f0, f1, 190, 0.08, 0.6)
     light_flicker(rim, f0, f1, 230, 0.12, 2.4)
     dust(f0, f1, n=14, spread=1.4, r=0.009)
-    cam = add_camera((0.0, -4.5, 0.5), (0, 0, 0), lens=58, fstop=1.8, focus=4.6)
-    cam_keys(cam, [(f0, (0.0, -4.5, 0.5), (0, 0, 0)),
-                   (f1, (0.30, -3.3, 0.14), (0, 0, 0))])
-    focus_keys(cam, [(f0, 4.6), (f1, 3.4)])
+    cam = add_camera((0.0, -5.6, 0.6), (0, 0, 0), lens=58, fstop=1.8, focus=5.7)
+    cam_keys(cam, [(f0, (0.0, -5.6, 0.6), (0, 0, 0)),
+                   (f1, (0.30, -4.2, 0.16), (0, 0, 0))])
+    focus_keys(cam, [(f0, 5.7), (f1, 4.3)])
     fg_bokeh(cam, f0, f1, dist=0.6, r=0.09)
     return cam
 
@@ -684,16 +684,16 @@ def shot_fields(f0, f1):
 
 def shot_contact(f0, f1, macro=False):
     """09/10 — two electron clouds refuse to overlap: you never touch anything."""
-    R = 1.25
+    R = 0.85
     a_mat = fresnel_mat("cloudA", CYAN, strength=8.0, power=1.7)
     b_mat = fresnel_mat("cloudB", (1.0, 0.52, 0.30), strength=8.0, power=1.7)
-    A = sphere("cloudA", R, (-3.4, 0, 0), a_mat, subdiv=4)
-    B = sphere("cloudB", R, (3.4, 0, 0), b_mat, subdiv=4)
+    A = sphere("cloudA", R, (-2.15, 0, 0), a_mat, subdiv=4)
+    B = sphere("cloudB", R, (2.15, 0, 0), b_mat, subdiv=4)
     for ob, sign in ((A, 1.0), (B, -1.0)):
-        for fr, x, sq in ((f0, 3.4, 1.00),
-                          (int(f0 + (f1 - f0) * 0.55), 2.66, 0.93),
-                          (int(f0 + (f1 - f0) * 0.78), 2.56, 0.84),
-                          (f1, 2.66, 0.92)):
+        for fr, x, sq in ((f0, 2.15, 1.00),
+                          (int(f0 + (f1 - f0) * 0.55), 1.66, 0.93),
+                          (int(f0 + (f1 - f0) * 0.78), 1.56, 0.84),
+                          (f1, 1.66, 0.92)):
             ob.location = (sign * x, 0, 0)
             ob.scale = (R * sq, R / sq, R / sq)
             ob.keyframe_insert("location", frame=fr)
@@ -723,16 +723,16 @@ def shot_contact(f0, f1, macro=False):
     light_flicker(rim, f0, f1, 260, 0.09, 1.6)
     dust(f0, f1, n=14, spread=2.4, r=0.013)
     if macro:
-        cam = add_camera((0.25, -1.75, 0.45), (0, 0, 0), lens=80, fstop=1.6, focus=1.8)
-        cam_keys(cam, [(f0, (0.25, -1.75, 0.45), (0, 0, 0)),
-                       (f1, (-0.75, -2.05, -0.25), (0, 0, 0))])
-        focus_keys(cam, [(f0, 1.8), (f1, 2.2)])
+        cam = add_camera((0.20, -4.6, 0.85), (0, 0, 0), lens=45, fstop=1.6, focus=4.7)
+        cam_keys(cam, [(f0, (0.20, -4.6, 0.85), (0, 0, 0)),
+                       (f1, (-0.70, -4.9, -0.35), (0, 0, 0))])
+        focus_keys(cam, [(f0, 4.7), (f1, 5.0)])
         fg_bokeh(cam, f0, f1, dist=0.45, r=0.07)
     else:
-        cam = add_camera((0.5, -6.6, 1.4), (0, 0, 0), lens=50, fstop=2.2, focus=6.7)
-        cam_keys(cam, [(f0, (0.5, -6.6, 1.4), (0, 0, 0)),
-                       (f1, (-0.4, -5.4, 0.9), (0, 0, 0))])
-        focus_keys(cam, [(f0, 6.7), (f1, 5.5)])
+        cam = add_camera((0.6, -13.5, 3.0), (0, 0, 0), lens=50, fstop=2.2, focus=13.8)
+        cam_keys(cam, [(f0, (0.6, -13.5, 3.0), (0, 0, 0)),
+                       (f1, (-0.4, -11.6, 2.2), (0, 0, 0))])
+        focus_keys(cam, [(f0, 13.8), (f1, 11.9)])
         fg_bokeh(cam, f0, f1, dist=0.95, r=0.14)
     return cam
 
@@ -745,10 +745,10 @@ def shot_feeling(f0, f1):
     light_flicker(key, f0, f1, 260, 0.06, 0.4)
     light_flicker(rim, f0, f1, 230, 0.1, 1.7)
     dust(f0, f1, n=22, spread=3.0, r=0.014, z0=-1.4, z1=1.6)
-    cam = add_camera((0.4, -2.2, 0.25), (0, 1.0, 0), lens=44, fstop=2.2, focus=2.4)
-    cam_keys(cam, [(f0, (0.4, -2.2, 0.25), (0, 1.0, 0)),
-                   (f1, (-1.6, -8.6, 1.9), (0, 0, 0))])
-    focus_keys(cam, [(f0, 2.4), (f1, 9.0)])
+    cam = add_camera((0.4, -2.6, 0.3), (0, 1.0, 0), lens=44, fstop=2.2, focus=2.8)
+    cam_keys(cam, [(f0, (0.4, -2.6, 0.3), (0, 1.0, 0)),
+                   (f1, (-2.6, -16.0, 3.4), (0, 0, 0))])
+    focus_keys(cam, [(f0, 2.8), (f1, 16.5)])
     fg_bokeh(cam, f0, f1, dist=0.6, r=0.09)
     return cam
 
@@ -756,17 +756,17 @@ def shot_feeling(f0, f1):
 def shot_void(f0, f1):
     """12 — atoms are almost all space: one atom alone in the dark."""
     nucleon_cluster(f0, f1, radius=0.085, count=10, nuc_r=0.028, glow=1.6)
-    atom_shell(2.15, color=CYAN, name="voidshell", strength=7.5, power=2.4)
-    electron_cloud(f0, f1, radius=2.1, count=80, size=0.016, glow=3.4)
+    atom_shell(1.25, color=CYAN, name="voidshell", strength=4.5, power=3.0)
+    electron_cloud(f0, f1, radius=1.2, count=80, size=0.012, glow=3.4)
     key = area_light((2.8, -2.8, 2.4), (0, 0, 0), 2.8, 300, (0.6, 0.86, 1.0))
     rim = area_light((-2.8, 2.0, -1.7), (0, 0, 0), 2.8, 260, (1.0, 0.52, 0.28))
     light_flicker(key, f0, f1, 300, 0.06, 0.3)
     light_flicker(rim, f0, f1, 260, 0.1, 1.5)
     dust(f0, f1, n=24, spread=3.4, r=0.018, z0=-1.6, z1=1.8)
-    cam = add_camera((-1.8, -3.4, 0.85), (0, 0, 0), lens=42, fstop=2.0, focus=3.9)
-    cam_keys(cam, [(f0, (-1.8, -3.4, 0.85), (0, 0, 0)),
-                   (f1, (2.1, -3.0, 0.25), (0, 0, 0))])
-    focus_keys(cam, [(f0, 3.9), (f1, 3.7)])
+    cam = add_camera((-1.9, -5.6, 1.1), (0, 0, 0), lens=45, fstop=2.0, focus=6.0)
+    cam_keys(cam, [(f0, (-1.9, -5.6, 1.1), (0, 0, 0)),
+                   (f1, (2.1, -5.2, 0.4), (0, 0, 0))])
+    focus_keys(cam, [(f0, 6.0), (f1, 5.6)])
     fg_bokeh(cam, f0, f1, dist=0.95, r=0.13)
     return cam
 
