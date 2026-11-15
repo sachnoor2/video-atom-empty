@@ -1,9 +1,14 @@
-import {loadFont} from '@remotion/google-fonts/Inter';
+import {loadFont} from '@remotion/fonts';
+import {CAPTION_FONT_DATA_URI} from './font';
 
-// One face, loaded through Remotion's font loader so the first frame waits for it.
-const {fontFamily} = loadFont('normal', {weights: ['800'], subsets: ['latin']});
+loadFont({
+  family: 'Caption',
+  url: CAPTION_FONT_DATA_URI,
+  weight: '800',
+  format: 'woff2',
+});
 
-export const CAPTION_FONT = `${fontFamily}, Inter, Helvetica, Arial, sans-serif`;
+export const CAPTION_FONT = 'Caption, Inter, Helvetica, Arial, sans-serif';
 
 export const COLORS = {
   bg: '#05070c',
