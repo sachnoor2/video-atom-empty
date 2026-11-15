@@ -86,14 +86,10 @@ def fresnel_mat(name, color, strength=8.0, power=2.6, alpha=0.0):
     emis.inputs["Strength"].default_value = strength
     lw = nt.nodes.new("ShaderNodeLayerWeight")
     lw.inputs["Blend"].default_value = 0.5
-    inv = nt.nodes.new("ShaderNodeMath")
-    inv.operation = "SUBTRACT"
-    inv.inputs[0].default_value = 1.0
     pw = nt.nodes.new("ShaderNodeMath")
     pw.operation = "POWER"
     pw.inputs[1].default_value = power
-    nt.links.new(lw.outputs["Facing"], inv.inputs[1])
-    nt.links.new(inv.outputs[0], pw.inputs[0])
+    nt.links.new(lw.outputs["Facing"], pw.inputs[0])
     nt.links.new(pw.outputs[0], mix.inputs["Fac"])
     nt.links.new(trans.outputs[0], mix.inputs[1])
     nt.links.new(emis.outputs[0], mix.inputs[2])
@@ -330,7 +326,7 @@ def setup_render(f0, f1, samples=48):
             pass
     sc.cycles.max_bounces = 5
     sc.cycles.transmission_bounces = 6
-    sc.cycles.transparent_max_bounces = 16
+    sc.cycles.transparent_max_bounces = 10
     sc.cycles.caustics_reflective = False
     sc.cycles.caustics_refractive = False
     sc.cycles.seed = 7
@@ -515,7 +511,7 @@ def shot_table(f0, f1):
 
 def shot_empty(f0, f1):
     """02 — the same matter, x-ray: dive between the atoms."""
-    lattice(f0, f1, n=7, depth=3, xray=True)
+    lattice(f0, f1, n=5, depth=3, step=1.15, xray=True)
     key = area_light((2.6, -3.4, 2.4), (0, 0, 0), 2.6, 240, (0.6, 0.86, 1.0))
     rim = area_light((-2.8, 1.8, -1.2), (0, 0, 0), 3.0, 220, (1.0, 0.58, 0.3))
     light_flicker(key, f0, f1, 240, 0.07, 0.6)
@@ -743,7 +739,7 @@ def shot_contact(f0, f1, macro=False):
 
 def shot_feeling(f0, f1):
     """11 — solid is a feeling: pull back out of the lattice."""
-    lattice(f0, f1, n=7, depth=3, xray=True)
+    lattice(f0, f1, n=5, depth=3, step=1.15, xray=True)
     key = area_light((2.8, -3.0, 2.6), (0, 0, 0), 2.8, 260, (0.6, 0.86, 1.0))
     rim = area_light((-3.0, 1.6, -1.4), (0, 0, 0), 3.0, 230, (1.0, 0.55, 0.28))
     light_flicker(key, f0, f1, 260, 0.06, 0.4)
