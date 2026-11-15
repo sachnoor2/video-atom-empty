@@ -1,0 +1,60 @@
+{
+  "fps": 30,
+  "engine": "kokoro",
+  "voice": "am_michael",
+  "lang": "en-us",
+  "speed": 0.98,
+  "pad": 0.65,
+  "minSeconds": 2.6,
+  "title": "Why Solid Things Are Almost Empty",
+  "scenes": [
+    {
+      "id": "01-table",
+      "text": "Look at this table. It feels solid."
+    },
+    {
+      "id": "02-empty",
+      "text": "It is almost entirely empty space."
+    },
+    {
+      "id": "03-atom",
+      "text": "Every atom is a nucleus, wrapped in electrons."
+    },
+    {
+      "id": "04-nucleus",
+      "text": "The nucleus is a hundred thousand times smaller."
+    },
+    {
+      "id": "05-marble",
+      "text": "If the nucleus were a marble, the atom would be a kilometre wide."
+    },
+    {
+      "id": "06-percent",
+      "text": "So an atom is more than ninety nine point nine percent empty."
+    },
+    {
+      "id": "07-mass",
+      "text": "Almost all of its mass sits in that tiny core."
+    },
+    {
+      "id": "08-fields",
+      "text": "The rest is fields, not stuff."
+    },
+    {
+      "id": "09-touch",
+      "text": "You never actually touch anything."
+    },
+    {
+      "id": "10-push",
+      "text": "Electrons push other electrons away."
+    },
+    {
+      "id": "11-feeling",
+      "text": "Solid is a feeling, not a fact."
+    },
+    {
+      "id": "12-space",
+      "text": "Atoms are almost all space."
+    }
+  ]
+}
