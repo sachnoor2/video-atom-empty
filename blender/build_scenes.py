@@ -493,17 +493,17 @@ def lattice(f0, f1, n=7, depth=3, radius=0.54, step=1.03, xray=False):
 
 def shot_table(f0, f1):
     """01 — solid matter up close: a packed crystal wall of atoms."""
-    lattice(f0, f1, n=5, depth=3, step=1.15)
+    lattice(f0, f1, n=5, depth=7, step=1.05)
     key = area_light((3.4, -9.0, 3.0), (0, 0, 0), 3.0, 900, (0.62, 0.88, 1.0))
     rim = area_light((-3.6, 1.4, -1.6), (0, 0, 0), 3.4, 700, (1.0, 0.55, 0.28))
     top = area_light((0.0, -6.0, 5.0), (0, 0, 0), 4.0, 420, (0.75, 0.9, 1.0))
     light_flicker(key, f0, f1, 900, 0.05, 0.3)
     light_flicker(rim, f0, f1, 700, 0.09, 1.1)
     dust(f0, f1, n=18, spread=3.2, r=0.012, z0=-1.4, z1=1.6)
-    cam = add_camera((0.0, -17.0, 0.6), (0, 0, 0), lens=45, fstop=2.2, focus=13.4)
-    cam_keys(cam, [(f0, (0.0, -17.0, 0.6), (0, 0, 0)),
-                   (f1, (0.25, -12.5, 0.18), (0, 0.4, 0))])
-    focus_keys(cam, [(f0, 13.4), (f1, 8.9)])
+    cam = add_camera((0.0, -13.0, 0.5), (0, 0, 0), lens=45, fstop=2.2, focus=9.4)
+    cam_keys(cam, [(f0, (0.0, -13.0, 0.5), (0, 0, 0)),
+                   (f1, (0.25, -9.4, 0.15), (0, 0.4, 0))])
+    focus_keys(cam, [(f0, 9.4), (f1, 5.9)])
     fg_bokeh(cam, f0, f1, dist=0.9, r=0.12)
     return cam
 
@@ -684,15 +684,15 @@ def shot_fields(f0, f1):
 def shot_contact(f0, f1, macro=False):
     """09/10 — two electron clouds refuse to overlap: you never touch anything."""
     R = 0.85
-    a_mat = fresnel_mat("cloudA", CYAN, strength=8.0, power=1.7)
-    b_mat = fresnel_mat("cloudB", (1.0, 0.52, 0.30), strength=8.0, power=1.7)
-    A = sphere("cloudA", R, (-2.15, 0, 0), a_mat, subdiv=4)
-    B = sphere("cloudB", R, (2.15, 0, 0), b_mat, subdiv=4)
+    a_mat = fresnel_mat("cloudA", CYAN, strength=9.0, power=2.9)
+    b_mat = fresnel_mat("cloudB", (1.0, 0.52, 0.30), strength=9.0, power=2.9)
+    A = sphere("cloudA", R, (-1.95, 0, 0), a_mat, subdiv=4)
+    B = sphere("cloudB", R, (1.95, 0, 0), b_mat, subdiv=4)
     for ob, sign in ((A, 1.0), (B, -1.0)):
-        for fr, x, sq in ((f0, 2.15, 1.00),
-                          (int(f0 + (f1 - f0) * 0.55), 1.66, 0.93),
-                          (int(f0 + (f1 - f0) * 0.78), 1.56, 0.84),
-                          (f1, 1.66, 0.92)):
+        for fr, x, sq in ((f0, 1.95, 1.00),
+                          (int(f0 + (f1 - f0) * 0.55), 1.44, 0.94),
+                          (int(f0 + (f1 - f0) * 0.78), 1.34, 0.86),
+                          (f1, 1.44, 0.93)):
             ob.location = (sign * x, 0, 0)
             ob.scale = (R * sq, R / sq, R / sq)
             ob.keyframe_insert("location", frame=fr)
@@ -701,7 +701,7 @@ def shot_contact(f0, f1, macro=False):
     e_mat = make_mat("e2", base=CYAN, rough=0.2, emit=(0.62, 0.95, 1.0), emit_strength=3.0)
     e2_mat = make_mat("e3", base=(1.0, 0.66, 0.4), rough=0.2,
                       emit=(1.0, 0.6, 0.32), emit_strength=3.0)
-    for i in range(22):
+    for i in range(34):
         u = (i * 0.7548776662) % 1.0
         v = (i * 0.5698402910) % 1.0
         th = 2 * math.pi * u
@@ -714,8 +714,8 @@ def shot_contact(f0, f1, macro=False):
             e.matrix_parent_inverse = ob.matrix_world.inverted()
             e.location = loc
             jitter(e, f0, f1, amp=0.06, phase=i + side, nkeys=4)
-    gap = point_light((0, 0, 0), 14, (1.0, 0.82, 0.6), radius=0.15)
-    light_flicker(gap, f0, f1, 14, 0.4, 0.2, nkeys=8)
+    gap = point_light((0, 0, 0), 45, (1.0, 0.86, 0.66), radius=0.12)
+    light_flicker(gap, f0, f1, 45, 0.4, 0.2, nkeys=8)
     key = area_light((0, -3.2, 2.2), (0, 0, 0), 2.8, 300, (0.66, 0.88, 1.0))
     light_flicker(key, f0, f1, 300, 0.06, 0.8)
     rim = area_light((0, 2.8, -1.9), (0, 0, 0), 2.8, 260, (1.0, 0.52, 0.28))
@@ -728,10 +728,10 @@ def shot_contact(f0, f1, macro=False):
         focus_keys(cam, [(f0, 4.7), (f1, 5.0)])
         fg_bokeh(cam, f0, f1, dist=0.45, r=0.07)
     else:
-        cam = add_camera((0.6, -13.5, 3.0), (0, 0, 0), lens=50, fstop=2.2, focus=13.8)
-        cam_keys(cam, [(f0, (0.6, -13.5, 3.0), (0, 0, 0)),
-                       (f1, (-0.4, -11.6, 2.2), (0, 0, 0))])
-        focus_keys(cam, [(f0, 13.8), (f1, 11.9)])
+        cam = add_camera((0.6, -12.0, 2.6), (0, 0, 0), lens=50, fstop=2.2, focus=12.3)
+        cam_keys(cam, [(f0, (0.6, -12.0, 2.6), (0, 0, 0)),
+                       (f1, (-0.4, -10.2, 1.9), (0, 0, 0))])
+        focus_keys(cam, [(f0, 12.3), (f1, 10.5)])
         fg_bokeh(cam, f0, f1, dist=0.95, r=0.14)
     return cam
 

@@ -5,10 +5,14 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "preview = 2 frames per shot at low samples; full = the film"
+        description: "preview = 2 frames per shot; full = the film"
         type: choice
         options: [probe, cost, preview, full]
         default: preview
+      shots:
+        description: "JSON list of shot indices for preview, e.g. [0,9]"
+        type: string
+        default: "[0,1,2,3,4,5,6,7,8,9,10,11]"
 
 permissions:
   contents: write
@@ -87,7 +91,7 @@ jobs:
       fail-fast: false
       max-parallel: 12
       matrix:
-        shot: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+        shot: ${{ fromJSON(inputs.shots) }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
