@@ -1,0 +1,183 @@
+name: render
+
+# Blender renders the 3D, Remotion cuts it. Nothing renders in the agent sandbox.
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "preview = 2 frames per shot at low samples; full = the film"
+        type: choice
+        options: [preview, full]
+        default: preview
+
+permissions:
+  contents: write
+
+env:
+  BPY: "bpy==5.0.1"
+  PY: "3.11"
+
+jobs:
+  # ---------------------------------------------------------------- preview
+  preview:
+    if: inputs.mode == 'preview'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 12
+      matrix:
+        shot: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PY }}
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ env.BPY }}-${{ env.PY }}
+      - run: pip install --quiet ${{ env.BPY }}
+      - name: Render preview frames
+        run: |
+          python blender/render_shot.py --shotlist shotlist.json --out preview \
+            --shots ${{ matrix.shot }} --preview 2 --samples 16
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: preview-${{ matrix.shot }}
+          path: preview/*.png
+          retention-days: 7
+
+  # ---------------------------------------------------------------- prepare
+  prepare:
+    if: inputs.mode == 'full'
+    runs-on: ubuntu-latest
+    outputs:
+      shards: ${{ steps.plan.outputs.shards }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PY }}
+      - name: Voice model
+        run: |
+          pip install --quiet kokoro-onnx
+          curl -fsSL -o kokoro-v1.0.onnx https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx
+          curl -fsSL -o voices-v1.0.bin  https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin
+          ls -la kokoro-v1.0.onnx voices-v1.0.bin
+      - name: Narration (Kokoro am_michael) and measured manifest
+        run: |
+          python scripts/tts_kokoro.py --model kokoro-v1.0.onnx --voices voices-v1.0.bin
+          python scripts/make_shotlist.py
+          python scripts/foley.py --shotlist shotlist.json
+      - id: plan
+        run: |
+          echo "shards=$(python -c 'import json;print(json.dumps([s["index"] for s in json.load(open("shardplan.json"))]))')" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: audio
+          path: |
+            public/audio
+            public/foley
+            shotlist.json
+            shardplan.json
+            src/manifest.json
+          retention-days: 7
+
+  # ---------------------------------------------------------------- render
+  render:
+    if: inputs.mode == 'full'
+    needs: prepare
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 12
+      matrix:
+        shard: ${{ fromJSON(needs.prepare.outputs.shards) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PY }}
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ env.BPY }}-${{ env.PY }}
+      - run: pip install --quiet ${{ env.BPY }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: audio
+          path: .
+      - name: Render shard (absolute frame range from the shot list)
+        run: |
+          python blender/render_shot.py --shotlist shotlist.json --out frames --shots ${{ matrix.shard }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frames-${{ matrix.shard }}
+          path: frames/*.png
+          retention-days: 7
+
+  # ---------------------------------------------------------------- assemble
+  assemble:
+    if: inputs.mode == 'full'
+    needs: [prepare, render]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PY }}
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: frames-*
+          merge-multiple: true
+          path: public/frames
+      - uses: actions/download-artifact@v4
+        with:
+          name: audio
+          path: .
+      - name: Verify every frame index, and that no shot is a still
+        run: python scripts/verify_frames.py --shotlist shotlist.json --frames public/frames
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm install --no-audit --no-fund
+      - run: npx tsc --noEmit
+      - name: Remotion assembly
+        run: |
+          npx remotion render src/index.ts Video out/video.mp4 \
+            --gl=swangle --concurrency=2 --log=info
+      - name: ffprobe QA and audio level
+        run: |
+          ffprobe -v error -show_entries format=duration,size -of default=nw=1 out/video.mp4
+          ffprobe -v error -show_entries stream=codec_type,codec_name,width,height,r_frame_rate \
+            -of default=nw=1 out/video.mp4
+          ffmpeg -hide_banner -i out/video.mp4 -af volumedetect -f null - 2>&1 | grep -E "mean_volume|max_volume"
+          ffmpeg -hide_banner -i out/video.mp4 -vf blackdetect=d=0.02:pix_th=0.10 -an -f null - 2>&1 | grep -i black || echo "blackdetect: none"
+      - name: Contact sheet for the QA look
+        run: |
+          mkdir -p out/qa
+          python - <<'PY'
+          import json, subprocess
+          doc = json.load(open("shotlist.json"))
+          for s in doc["shots"]:
+              mid = (s["start"] + s["end"]) // 2
+              subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-ss", f"{mid / doc['fps']:.3f}",
+                              "-i", "out/video.mp4", "-frames:v", "1", f"out/qa/{s['id']}.jpg"], check=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: video
+          path: |
+            out/video.mp4
+            out/qa/*.jpg
+          retention-days: 14
+      - name: Publish the file as a release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          tag: v${{ github.run_number }}
+          name: render ${{ github.run_number }}
+          files: out/video.mp4
+          body: |
+            Blender Cycles plates, cut in Remotion. Duration and streams measured with ffprobe in this run.
