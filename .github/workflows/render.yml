@@ -7,7 +7,7 @@ on:
       mode:
         description: "preview = 2 frames per shot at low samples; full = the film"
         type: choice
-        options: [probe, preview, full]
+        options: [probe, cost, preview, full]
         default: preview
 
 permissions:
@@ -47,6 +47,36 @@ jobs:
         with:
           name: probe
           path: probe/*.png
+          retention-days: 7
+
+  # ---------------------------------------------------------------- cost
+  cost:
+    if: inputs.mode == 'cost'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PY }}
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ env.BPY }}-${{ env.PY }}
+      - name: GL libraries the bpy module links against
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libegl1 libgl1 libgl1-mesa-dri libglx-mesa0 libosmesa6 \
+            libxi6 libxxf86vm1 libxrender1 libxfixes3 libsm6 libice6 libxkbcommon0
+      - run: pip install --quiet ${{ env.BPY }}
+      - name: Time one frame under several settings
+        run: |
+          python blender/probe_cost.py --shot 0 --samples 16
+          python blender/probe_cost.py --shot 11 --samples 16
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cost
+          path: probe/
           retention-days: 7
 
   # ---------------------------------------------------------------- preview
